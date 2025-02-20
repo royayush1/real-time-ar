@@ -4,7 +4,7 @@ import Head from "next/head";
 import {motion} from "framer-motion";
 import Link from "next/link";
 
-export default function Home({children}: {children: React.ReactNode}) {
+export default function Home() {
   return (
     <>
       <Head>
