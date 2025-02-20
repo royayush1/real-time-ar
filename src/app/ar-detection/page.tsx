@@ -5,7 +5,7 @@ import * as cocoSsd from "@tensorflow-models/coco-ssd";
 import "@tensorflow/tfjs";
 import Head from "next/head";
 import { motion } from "framer-motion";
-import InteractiveCube from "../components/InteractiveCube";
+import FallingCube from "../components/FallingCube";
 import AmmoSelector from "../components/AmmoSelector";
 import AmmoProjectile from "../components/AmmoProjectile";
 import { label, pre } from "framer-motion/client";
@@ -22,6 +22,13 @@ const defaultDamageMapping: {[key: string]: number} = {
     default: 5,
 };
 
+interface FallingCubeData {
+    id: number;
+    initialX: number;
+    fallingSpeed: number;
+    isBonus: boolean;
+}
+
 export default function ARGamePage() {
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -35,6 +42,7 @@ export default function ARGamePage() {
     const [projectiles, setProjectiles] = useState<any[]>([]);
     const [pressStart, setPressStart] = useState<number | null>(null);
     const [pressPos, setPressPos] = useState<{x: number, y: number} | null>(null);
+    const [fallingCubes, setFallingCubes] = useState<FallingCubeData[]>([])
 
     function captureSnapshot(video: HTMLVideoElement, bbox: [number, number, number, number]){
         const [x, y, width, height] = bbox;
@@ -126,57 +134,71 @@ export default function ARGamePage() {
 
     }
 
-
-    const renderTargets = () => {
-        return detections.map((det, index) => {
-            const [x, y, width, height] = det.bbox;
-            const centerX = x + width/2;
-            const centerY = y + height/2;
-            const style: React.CSSProperties = {
-                position: "absolute",
-                left: centerX - 25,
-                top: centerY - 25,
-                width: 50,
-                height: 50
+    useEffect(() => {
+        const spawnInterval = setInterval(() => {
+            const newCube: FallingCubeData = {
+                id: Date.now(),
+                initialX: Math.random() * window.innerWidth,
+                fallingSpeed: Math.random() * 2 + 1,
+                isBonus: Math.random() < 0.2
             }
-            const isBonus = Math.random() < 0.2;
-            return (
-                <InteractiveCube
-                key={index}
-                style={style}
-                onHit={(bonus, damage) => {
-                    if (selectedAmmo){
-                        const ammoOriginX = 50; // Adjust as needed
-                        const ammoOriginY = window.innerHeight - 50; // Adjust as needed
-                        const projectile = {
-                            id: Date.now(),
-                            startX: ammoOriginX,
-                            startY: ammoOriginY,
-                            targetX: centerX,
-                            targetY: centerY,
-                            damage: selectedAmmo.damage,
-                            imageSrc: selectedAmmo.imageSrc,
-                        };
-                        setProjectiles((prev: any[]) => [...prev, projectile]);
-                        setSelectedAmmo(null);
-              
+            setFallingCubes((prev) => [...prev, newCube])
+        }, 2000)
+        return () => clearInterval(spawnInterval)
+    }, [])
 
-                    } else {
-                        setScore((prev) => prev + damage + (streak + 1))
-                        setStreak((prev) => prev + 1)
-                    }
-                
-                }}
-                onMiss={() => {
-                    setLives((prev) => Math.max(prev - 1, 0));
-                    setStreak(0);
-                }}
-                isBonus={isBonus}
-                hitTimeout={3000}
-                initialHealth={100}/>
-            )
-        })
-    }
+    const renderFallingCubes = () => {
+        const bottomY = window.innerHeight - 50; // the line at the bottom
+        return fallingCubes.map((cube) => {
+          const style: React.CSSProperties = {
+            position: "absolute",
+            left: cube.initialX,
+            top: -50, // start above the screen
+            width: 50,
+            height: 50,
+          };
+          return (
+            <FallingCube
+              key={cube.id}
+              style={style}
+              onHit={(bonus, damage) => {
+                if (selectedAmmo) {
+                  const ammoOriginX = 50;
+                  const ammoOriginY = window.innerHeight - 50;
+                  const projectile = {
+                    id: Date.now(),
+                    startX: ammoOriginX,
+                    startY: ammoOriginY,
+                    targetX: cube.initialX,
+                    targetY: bottomY, // or the cube's current Y (for simplicity, using bottomY)
+                    damage: selectedAmmo.damage,
+                    imageSrc: selectedAmmo.imageSrc,
+                  };
+                  setProjectiles((prev: any[]) => [...prev, projectile]);
+                  setSelectedAmmo(null);
+                } else {
+                  setScore((prev) => prev + damage * (streak + 1));
+                  setStreak((prev) => prev + 1);
+                }
+                // Remove the cube once hit
+                setFallingCubes((prev) => prev.filter((c) => c.id !== cube.id));
+              }}
+              onMiss={() => {
+                setLives((prev) => Math.max(prev - 1, 0));
+                setStreak(0);
+                setFallingCubes((prev) => prev.filter((c) => c.id !== cube.id));
+              }}
+              isBonus={cube.isBonus}
+              hitTimeout={3000}
+              initialHealth={100}
+              initialX={cube.initialX}
+              initialY={-50}
+              fallingSpeed={cube.fallingSpeed}
+              bottomY={bottomY}
+            />
+          );
+        });
+      };
 
     const renderProjectiles = () => {
         return projectiles.map((proj) => {
@@ -276,7 +298,7 @@ export default function ARGamePage() {
                     muted
                     playsInline/>
                 <canvas ref={canvasRef} className="absolute top-0 left-0"/>
-                <div className="absolute top-0 left-0 w-full h-full">{renderTargets()}</div>
+                <div className="absolute top-0 left-0 w-full h-full">{renderFallingCubes()}</div>
                 <div className="absolute top-0 left-0 w-full h-full">{renderProjectiles()}</div>
             </div>
         </>
