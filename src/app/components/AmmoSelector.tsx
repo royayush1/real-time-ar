@@ -21,14 +21,14 @@ export default function AmmoSelector({ammoOptions, onSelect}: AmmoSelectorProps)
             <div className="flex space-x-2">
                 {ammoOptions.map((option) => (
                     <button
-                        key={option.id}
+                        key={option?.id}
                         onClick={() => (onSelect(option))}
                         className="flex flex-col items-center hover:scale-105 transform transition-all duration-200">
                             <img
-                                src={option.imageSrc}
-                                alt={option.label}
+                                src={option?.imageSrc}
+                                alt={option?.label}
                                 className="w-12 h-12 rounded-full object-cover border-2 border-white"/>
-                            <span className="text-white text-xs mt-1">{option.label}</span>
+                            <span className="text-white text-xs mt-1">{option?.label}</span>
 
                     </button>
                 ))}
