@@ -5,7 +5,6 @@ import { useRef, useState, useEffect } from "react";
 import { Mesh } from "three"; 
 
 export interface FallingCubeProps {
-    style?: React.CSSProperties;
     onHit: (isBonus: Boolean, damage: number) => void;
     onMiss: () => void;
     isBonus?: boolean;
@@ -17,28 +16,43 @@ export interface FallingCubeProps {
     bottomY: number; 
 }
 
-function FallingCubeMesh({
+export default function FallingCube({
+    
     onHit,
     onMiss,
     isBonus = false,
     initialHealth = 100,
+    initialX,
+    initialY,
     fallingSpeed,
     bottomY
 }: FallingCubeProps) {
     const meshRef = useRef<Mesh>(null!);
+    
+        
     const [isDestroyed, setIsDestroyed] = useState(false);
     const [health, setHealth] = useState(initialHealth);
 
+    useEffect(() => {
+        if (meshRef.current){
+            meshRef.current.position.x = Math.random() * 1.5
+        }   
+    }, [])
 
     useFrame((state, delta) => {
-        if (!meshRef.current) return;
+        // if (!meshRef.current) return;
 
-        meshRef.current.position.y += fallingSpeed * delta * 60
+        meshRef.current.position.y -= fallingSpeed *delta
+        console.log("bottomY:" ,bottomY)
+        console.log("current x:", meshRef.current.position.x)
+        console.log("current y:", meshRef.current.position.y)
 
-        if(meshRef.current.position.y >= bottomY){
+        if(meshRef.current.position.y <= -4){
             onMiss();
         }
         
+        meshRef.current.rotation.x += 0.01;
+        meshRef.current.rotation.y += 0.01;
     })
 
     const handleClick = () => {
@@ -56,22 +70,12 @@ function FallingCubeMesh({
     
 
     return (
-        <mesh ref={meshRef} onClick={handleClick}>
-            <boxGeometry args={[1,1,1]} />
+        <mesh position={[0,4,0]} ref={meshRef} onClick={handleClick}>
+            <boxGeometry args={[0.25,0.25,0.25]} />
             <meshStandardMaterial color={isBonus ? "gold" : "orange"}/>
         </mesh>
     )
 };
 
-export default function FallingCube(props: FallingCubeProps){
-    return(
-        <div style = {props.style}>
-            <Canvas style={{ width: "100%", height: "100%" }}>
-                <ambientLight intensity={0.5} />
-                <pointLight position={[10, 10, 10]} />
-                <FallingCubeMesh {...props} />
-            </Canvas>
-        </div>
-    )
-}
+
 
