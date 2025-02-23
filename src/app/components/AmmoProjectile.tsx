@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import * as THREE from "three";
 
 interface AmmoProjectiveProps {
+    style?: React.CSSProperties;
     startX: number;
     startY: number;
     targetX: number;
@@ -14,14 +15,14 @@ interface AmmoProjectiveProps {
     onHit: () => void;
 }
 
-function MovingProjectile({startX, startY, targetX, targetY, onHit, imageSrc}: AmmoProjectiveProps){
+export default function AmmoProjectile({startX, startY, targetX, targetY, onHit, imageSrc}: AmmoProjectiveProps){
     const meshRef = useRef<THREE.Mesh>(null!);
     const [position, setPosition] = useState<[number,number,number]>([startX, startY, 0])
 
     useFrame(() => {
         const dx = targetX - position[0];
         const dy = targetY - position[1];
-        const step = 20;
+        const step = 0.25;
         let newX = position[0];
         let newY = position[1];
 
@@ -37,7 +38,7 @@ function MovingProjectile({startX, startY, targetX, targetY, onHit, imageSrc}: A
         }
         setPosition([newX, newY, 0]);
 
-        if (Math.abs(newX - targetX) < 1 && Math.abs(newY - targetY) < 1) {
+        if (Math.abs(newX - targetX) < 0.05 && Math.abs(newY - targetY) < 0.05) {
             onHit();
         }
 
@@ -50,20 +51,5 @@ function MovingProjectile({startX, startY, targetX, targetY, onHit, imageSrc}: A
             <planeGeometry args={[0.5, 0.5]}/>
             <meshBasicMaterial map={texture} transparent={true}/>
         </mesh>
-    )
-}
-
-interface ProjectileWrapperProps extends AmmoProjectiveProps{
-    style: React.CSSProperties;
-}
-
-export default function AmmoProjectile({ style, startX, startY, targetX, targetY, damage, imageSrc, onHit }: ProjectileWrapperProps){
-    return(
-        <div style={style}>
-            <Canvas style={{ width: "100%", height: "100%" }}>
-                <ambientLight intensity={0.5} />
-                <MovingProjectile startX={startX} startY={startY} targetX={targetX} targetY={targetY} onHit={onHit} imageSrc={imageSrc} damage={damage} />
-            </Canvas>
-        </div>
     )
 }

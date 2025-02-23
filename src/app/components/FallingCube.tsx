@@ -5,13 +5,13 @@ import { useRef, useState, useEffect } from "react";
 import { Mesh } from "three"; 
 
 export interface FallingCubeProps {
-    onHit: (isBonus: Boolean, damage: number) => void;
+    onHit: (health: number, currentY: number) => number;
     onMiss: () => void;
     isBonus?: boolean;
     hitTimeout?: number;
     initialHealth?: number;
-    initialX: number;  
-    initialY: number;   
+    initialX?: number;  
+    initialY?: number;   
     fallingSpeed: number; 
     bottomY: number; 
 }
@@ -22,8 +22,6 @@ export default function FallingCube({
     onMiss,
     isBonus = false,
     initialHealth = 100,
-    initialX,
-    initialY,
     fallingSpeed,
     bottomY
 }: FallingCubeProps) {
@@ -43,11 +41,8 @@ export default function FallingCube({
         // if (!meshRef.current) return;
 
         meshRef.current.position.y -= fallingSpeed *delta
-        console.log("bottomY:" ,bottomY)
-        console.log("current x:", meshRef.current.position.x)
-        console.log("current y:", meshRef.current.position.y)
 
-        if(meshRef.current.position.y <= -4){
+        if(meshRef.current.position.y <= -bottomY){
             onMiss();
         }
         
@@ -57,16 +52,13 @@ export default function FallingCube({
 
     const handleClick = () => {
         if(isDestroyed && health <= 0) return;
-      
-        const directHitDamage = isBonus ? 50 : 20;
-        const newHealth = health - directHitDamage;
-        setHealth(newHealth);
+        
+        const newHealth = onHit(health, meshRef.current.position.y)
+
+        setHealth(newHealth)
         if (newHealth <= 0){
             setIsDestroyed(true);
-            onHit(isBonus, directHitDamage);
-        }
-
-        }
+        }}
     
 
     return (
