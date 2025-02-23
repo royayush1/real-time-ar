@@ -47,14 +47,11 @@ export default function GamePage(){
             return () => clearInterval(spawnInterval)
         }, [])
 
-    useEffect(() => {
-        console.log("Falling cubes state updated:", fallingCubes);
-        }, [fallingCubes]);
         
 
     useEffect(() => {
         if (typeof window !== undefined){
-            setBottomY(window.innerHeight - 50)
+            setBottomY(4)
         }
     }, [])
 
@@ -70,27 +67,34 @@ export default function GamePage(){
           return (
             <FallingCube
               key={cube.id}
-              onHit={(bonus, damage) => {
+              onHit={(currentHealth, currentY) => {
                 if (selectedAmmo) {
-                  const ammoOriginX = 50;
+                  const ammoOriginX = cube.initialX;
                   const ammoOriginY = bottomY;
                   const projectile = {
                     id: Date.now(),
                     startX: ammoOriginX,
                     startY: ammoOriginY,
                     targetX: cube.initialX,
-                    targetY: bottomY, // or the cube's current Y (for simplicity, using bottomY)
+                    targetY: currentY - 0.2, // or the cube's current Y (for simplicity, using bottomY)
                     damage: selectedAmmo.damage,
                     imageSrc: selectedAmmo.imageSrc,
                   };
+            
                   setProjectiles((prev: any[]) => [...prev, projectile]);
-                  setSelectedAmmo(null);
+                  setScore((prev) => prev + selectedAmmo.damage * (streak + 1));
+                //   setSelectedAmmo(null);
+                  currentHealth -= selectedAmmo.damage;
                 } else {
-                  setScore((prev) => prev + damage * (streak + 1));
-                  setStreak((prev) => prev + 1);
+                  currentHealth -= 5;
+                  setScore((prev) => prev + 5 * (streak + 1));
                 }
                 // Remove the cube once hit
-                setFallingCubes((prev) => prev.filter((c) => c.id !== cube.id));
+                setStreak((prev) => prev + 1);
+                if (currentHealth <= 0){
+                    setFallingCubes((prev) => prev.filter((c) => c.id !== cube.id))
+                }
+                return currentHealth;
               }}
               onMiss={() => {
                 setLives((prev) => Math.max(prev - 1, 0));
@@ -99,9 +103,7 @@ export default function GamePage(){
               }}
               isBonus={cube.isBonus}
               hitTimeout={3000}
-              initialHealth={100}
-              initialX={cube.initialX}
-              initialY={-2}
+              initialHealth={cube.isBonus ? 150 : 100}
               fallingSpeed={cube.fallingSpeed}
               bottomY={bottomY}
             />
@@ -158,11 +160,11 @@ export default function GamePage(){
                 </div>
                 <Canvas ref={canvasRef} style={{ position:"absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex:99, borderWidth: 2}}>
                     <ambientLight intensity={0.5} />
-                    <pointLight position={[10, 10, 10]} />
+                    <pointLight position={[5, 5, 5]} />
                     {renderFallingCubes()}
+                    {renderProjectiles()}
+
                 </Canvas>
-                
-                <div className="absolute top-0 left-0 w-full h-full">{renderProjectiles()}</div>
             </div>
         </>
     )
