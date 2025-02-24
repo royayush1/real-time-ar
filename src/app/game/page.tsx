@@ -47,7 +47,9 @@ export default function GamePage(){
             return () => clearInterval(spawnInterval)
         }, [])
 
-        
+    useEffect(() => {
+        console.log("Ammo Options", ammoOptions)
+    }, [])
 
     useEffect(() => {
         if (typeof window !== undefined){
@@ -68,9 +70,10 @@ export default function GamePage(){
             <FallingCube
               key={cube.id}
               onHit={(currentHealth, currentY) => {
+                console.log("On hit working")
                 if (selectedAmmo) {
                   const ammoOriginX = cube.initialX;
-                  const ammoOriginY = bottomY;
+                  const ammoOriginY = -bottomY;
                   const projectile = {
                     id: Date.now(),
                     startX: ammoOriginX,
@@ -131,7 +134,6 @@ export default function GamePage(){
                     damage={proj.damage}
                     imageSrc={proj.imageSrc}
                     onHit={() => {
-                        setScore((prev) => prev + proj.damage);
                         setProjectiles((prev) => prev.filter((p) => p.id !== proj.id));
                     }}/>
             )
@@ -139,8 +141,13 @@ export default function GamePage(){
     }
 
     const handleAmmoSelect = (option: any) => {
+        console.log("Option", option)
         setSelectedAmmo(option);
     }
+
+    useEffect(() => {
+        console.log("Selected Ammo: ",selectedAmmo)
+    }, [selectedAmmo])
 
     return(
         <>
@@ -155,10 +162,10 @@ export default function GamePage(){
                 <div className="absolute top-4 left-4 bg-black bg-opacity-50 text-white p-2 rounded">
                     Score: {score} | Lives: {lives} | Streak: {streak}
                 </div>
-                <div className="absolute bottom-4 left-4 z-20">
+                <div className="absolute bottom-4 left-4 z-[999]">
                     <AmmoSelector ammoOptions={ammoOptions} onSelect={handleAmmoSelect}/>
                 </div>
-                <Canvas ref={canvasRef} style={{ position:"absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex:99, borderWidth: 2}}>
+                <Canvas ref={canvasRef} style={{ position:"absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex:10, borderWidth: 2}}>
                     <ambientLight intensity={0.5} />
                     <pointLight position={[5, 5, 5]} />
                     {renderFallingCubes()}
