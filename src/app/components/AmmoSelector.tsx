@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react";
+import React, {useState} from "react";
 
 interface AmmoOption {
     id: number;
@@ -15,6 +15,8 @@ interface AmmoSelectorProps {
 }
 
 export default function AmmoSelector({ammoOptions, onSelect}: AmmoSelectorProps){
+    const [selected, setSelected] = useState<boolean>(false);
+
     return (
         <div className="bg-black bg-opacity-70 p-4 rounded">
             <h3 className="text-white font-bold mb-2">Select Ammo</h3>
@@ -22,8 +24,12 @@ export default function AmmoSelector({ammoOptions, onSelect}: AmmoSelectorProps)
                 {ammoOptions.map((option) => (
                     <button
                         key={option?.id}
-                        onClick={() => (onSelect(option))}
-                        className="flex flex-col items-center hover:scale-105 transform transition-all duration-200">
+                        onClick={
+                            () => 
+                            {onSelect(option)
+                             setSelected(!selected)
+                            console.log("Selected",selected)}}
+                        className={`${selected ? 'bg-green-500' : '' } flex flex-col items-center hover:scale-105 transform transition-all duration-200`}>
                             <img
                                 src={option?.imageSrc}
                                 alt={option?.label}
