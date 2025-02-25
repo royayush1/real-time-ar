@@ -10,7 +10,7 @@ export interface FallingCubeProps {
     isBonus?: boolean;
     hitTimeout?: number;
     initialHealth?: number;
-    initialX?: number;  
+    initialX: number;  
     initialY?: number;   
     fallingSpeed: number; 
     bottomY: number; 
@@ -20,6 +20,7 @@ export default function FallingCube({
     
     onHit,
     onMiss,
+    initialX,
     isBonus = false,
     initialHealth = 100,
     fallingSpeed,
@@ -32,10 +33,13 @@ export default function FallingCube({
     const [health, setHealth] = useState(initialHealth);
 
     useEffect(() => {
-        if (meshRef.current){
-            meshRef.current.position.x = Math.random() * 1.5
-        }   
-    }, [])
+        if(meshRef.current){
+            if(initialX){
+                console.log("Initial X: ", initialX)
+                meshRef.current.position.x = initialX
+            }
+        }
+    },[])
 
     useFrame((state, delta) => {
         // if (!meshRef.current) return;
@@ -51,6 +55,7 @@ export default function FallingCube({
     })
 
     const handleClick = () => {
+        console.log("Cube clicked")
         if(isDestroyed && health <= 0) return;
         
         const newHealth = onHit(health, meshRef.current.position.y)
@@ -62,7 +67,7 @@ export default function FallingCube({
     
 
     return (
-        <mesh position={[0,4,0]} ref={meshRef} onClick={handleClick}>
+        <mesh position={[0,4,0]} ref={meshRef} onPointerDown={handleClick}>
             <boxGeometry args={[0.25,0.25,0.25]} />
             <meshStandardMaterial color={isBonus ? "gold" : "orange"}/>
         </mesh>
