@@ -32,10 +32,11 @@ export default function GamePage(){
             const spawnInterval = setInterval(() => {
                 const newCube: FallingCubeData = {
                     id: Date.now(),
-                    initialX: Math.random() * window.innerWidth,
+                    initialX: Math.random() * (1.5 - (-1.5)) + (-1.5),
                     fallingSpeed: Math.random() * 3 + 1,
                     isBonus: Math.random() < 0.2
                 }
+                console.log("new cube initial X:", newCube.initialX)
                 setFallingCubes((prev) => {
                     const updated = [...prev, newCube];
                     console.log("Updated falling cubes:", updated);
@@ -69,9 +70,11 @@ export default function GamePage(){
           return (
             <FallingCube
               key={cube.id}
+              initialX={cube.initialX}
               onHit={(currentHealth, currentY) => {
                 console.log("On hit working")
                 if (selectedAmmo) {
+                    console.log("Selected ammo: ", selectedAmmo)
                   const ammoOriginX = cube.initialX;
                   const ammoOriginY = -bottomY;
                   const projectile = {
@@ -89,6 +92,7 @@ export default function GamePage(){
                 //   setSelectedAmmo(null);
                   currentHealth -= selectedAmmo.damage;
                 } else {
+                 console.log("null Selected ammo: ", selectedAmmo)
                   currentHealth -= 5;
                   setScore((prev) => prev + 5 * (streak + 1));
                 }
@@ -123,6 +127,7 @@ export default function GamePage(){
                 width: 50,
                 height: 50
             };
+            console.log("Projectile shot : ", proj.damage, "damage, ID: ",proj.id  )
             return (
                 <AmmoProjectile
                     key={proj.id}
@@ -165,7 +170,7 @@ export default function GamePage(){
                 <div className="absolute bottom-4 left-4 z-[999]">
                     <AmmoSelector ammoOptions={ammoOptions} onSelect={handleAmmoSelect}/>
                 </div>
-                <Canvas ref={canvasRef} style={{ position:"absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex:10, borderWidth: 2}}>
+                <Canvas ref={canvasRef} style={{ position:"absolute", top: 0, left: 0, width: "100%", height: "100%", borderWidth: 2}}>
                     <ambientLight intensity={0.5} />
                     <pointLight position={[5, 5, 5]} />
                     {renderFallingCubes()}

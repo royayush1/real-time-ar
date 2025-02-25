@@ -1,6 +1,6 @@
 "use client"
 
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { useRef, useState } from "react";
 import * as THREE from "three";
 
@@ -18,6 +18,7 @@ interface AmmoProjectiveProps {
 export default function AmmoProjectile({startX, startY, targetX, targetY, onHit, imageSrc}: AmmoProjectiveProps){
     const meshRef = useRef<THREE.Mesh>(null!);
     const [position, setPosition] = useState<[number,number,number]>([startX, startY, 0])
+    const texture = useLoader(THREE.TextureLoader, imageSrc);
 
     useFrame(() => {
         const dx = targetX - position[0];
@@ -42,14 +43,16 @@ export default function AmmoProjectile({startX, startY, targetX, targetY, onHit,
             onHit();
         }
 
+        console.log("Position update: ", position)
+
     })
 
-    const texture = new THREE.TextureLoader().load(imageSrc);
+    // const texture = new THREE.TextureLoader().load(imageSrc);
 
     return(
         <mesh ref={meshRef} position={position}>
             <planeGeometry args={[0.5, 0.5]}/>
-            <meshBasicMaterial map={texture} transparent={true}/>
+            <meshBasicMaterial map={texture} transparent={false}/>
         </mesh>
     )
 }
