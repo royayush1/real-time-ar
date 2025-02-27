@@ -35,6 +35,7 @@ export default function AmmoSelector({ammoOptions, onSelect}: AmmoSelectorProps)
                                 alt={option?.label}
                                 className="w-12 h-12 rounded-full object-cover border-2 border-white"/>
                             <span className="text-white text-xs mt-1">{option?.label}</span>
+                            <span className="text-white text-xs mt-1">{option?.damage} Damage</span>
 
                     </button>
                 ))}
