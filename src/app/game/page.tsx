@@ -7,6 +7,7 @@ import AmmoSelector from "../components/AmmoSelector";
 import { useSearchParams } from "next/navigation";
 import { Canvas } from "@react-three/fiber";
 import { useGameContext } from "@/GameContext";
+import BackgroundMusic from "../components/BackgroundMusic";
 
 interface FallingCubeData {
     id: number;
@@ -71,7 +72,7 @@ export default function GamePage(){
             <FallingCube
               key={cube.id}
               initialX={cube.initialX}
-              onHit={(currentHealth, currentY) => {
+              onHit={(currentHealth, currentY, setHealth) => {
                 console.log("On hit working")
                 if (selectedAmmo) {
                     console.log("Selected ammo: ", selectedAmmo)
@@ -85,22 +86,26 @@ export default function GamePage(){
                     targetY: currentY - 0.2, // or the cube's current Y (for simplicity, using bottomY)
                     damage: selectedAmmo.damage,
                     imageSrc: selectedAmmo.imageSrc,
+                    targetHealth: currentHealth,
+                    targetID: cube.id,
+                    setTargetHealth: setHealth,
                   };
             
                   setProjectiles((prev: any[]) => [...prev, projectile]);
-                  setScore((prev) => prev + selectedAmmo.damage * (streak + 1));
+                  
                 //   setSelectedAmmo(null);
-                  currentHealth -= selectedAmmo.damage;
+                  
                 } else {
                  console.log("null Selected ammo: ", selectedAmmo)
                   currentHealth -= 5;
                   setScore((prev) => prev + 5 * (streak + 1));
-                }
-                // Remove the cube once hit
-                setStreak((prev) => prev + 1);
-                if (currentHealth <= 0){
+                  // Remove the cube once hit
+                  setStreak((prev) => prev + 1);
+                  if (currentHealth <= 0){
                     setFallingCubes((prev) => prev.filter((c) => c.id !== cube.id))
                 }
+                }
+                
                 return currentHealth;
               }}
               onMiss={() => {
@@ -110,7 +115,7 @@ export default function GamePage(){
               }}
               isBonus={cube.isBonus}
               hitTimeout={3000}
-              initialHealth={cube.isBonus ? 150 : 100}
+              initialHealth={cube.isBonus ? 60 : 30}
               fallingSpeed={cube.fallingSpeed}
               bottomY={bottomY}
             />
@@ -138,8 +143,16 @@ export default function GamePage(){
                     targetY={proj.targetY}
                     damage={proj.damage}
                     imageSrc={proj.imageSrc}
-                    onHit={() => {
+                    targetHealth={proj.targetHealth}
+                    onHit={(targetHealth) => {
                         setProjectiles((prev) => prev.filter((p) => p.id !== proj.id));
+                        setScore((prev) => prev + proj.damage * (streak + 1));
+                        targetHealth -= proj.damage;
+                        proj.setTargetHealth(targetHealth)
+                        setStreak((prev) => prev + 1);
+                        if (targetHealth <= 0){
+                            setFallingCubes((prev) => prev.filter((c) => c.id !== proj.targetID))
+                        }
                     }}/>
             )
         })
@@ -177,6 +190,7 @@ export default function GamePage(){
                     {renderProjectiles()}
 
                 </Canvas>
+                <BackgroundMusic/>
             </div>
         </>
     )

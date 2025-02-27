@@ -5,7 +5,7 @@ import { useRef, useState, useEffect } from "react";
 import { Mesh } from "three"; 
 
 export interface FallingCubeProps {
-    onHit: (health: number, currentY: number) => number;
+    onHit: (health: number, currentY: number, fn:(health:number) => void) => number;
     onMiss: () => void;
     isBonus?: boolean;
     hitTimeout?: number;
@@ -58,7 +58,7 @@ export default function FallingCube({
         console.log("Cube clicked")
         if(isDestroyed && health <= 0) return;
         
-        const newHealth = onHit(health, meshRef.current.position.y)
+        const newHealth = onHit(health, meshRef.current.position.y, setHealth)
 
         setHealth(newHealth)
         if (newHealth <= 0){
@@ -68,7 +68,7 @@ export default function FallingCube({
 
     return (
         <mesh position={[0,4,0]} ref={meshRef} onPointerDown={handleClick}>
-            <boxGeometry args={[0.25,0.25,0.25]} />
+            <boxGeometry args={[0.35,0.35,0.35]} />
             <meshStandardMaterial color={isBonus ? "gold" : "orange"}/>
         </mesh>
     )

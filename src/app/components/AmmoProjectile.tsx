@@ -12,10 +12,11 @@ interface AmmoProjectiveProps {
     targetY: number;
     damage: number;
     imageSrc: string;
-    onHit: () => void;
+    targetHealth:number;
+    onHit: (targetHealth:number) => void;
 }
 
-export default function AmmoProjectile({startX, startY, targetX, targetY, onHit, imageSrc}: AmmoProjectiveProps){
+export default function AmmoProjectile({startX, startY, targetX, targetY, targetHealth, onHit, imageSrc}: AmmoProjectiveProps){
     const meshRef = useRef<THREE.Mesh>(null!);
     const [position, setPosition] = useState<[number,number,number]>([startX, startY, 0])
     const texture = useLoader(THREE.TextureLoader, imageSrc);
@@ -26,6 +27,9 @@ export default function AmmoProjectile({startX, startY, targetX, targetY, onHit,
         const step = 0.25;
         let newX = position[0];
         let newY = position[1];
+
+        // meshRef.current.rotation.x += 0.5;
+        // meshRef.current.rotation.y += 0.5;
 
         if (Math.abs(dx) > step){
             newX += step * Math.sign(dx);
@@ -40,7 +44,7 @@ export default function AmmoProjectile({startX, startY, targetX, targetY, onHit,
         setPosition([newX, newY, 0]);
 
         if (Math.abs(newX - targetX) < 0.05 && Math.abs(newY - targetY) < 0.05) {
-            onHit();
+            onHit(targetHealth);
         }
 
         console.log("Position update: ", position)
