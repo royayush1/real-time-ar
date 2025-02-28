@@ -7,13 +7,80 @@ import AmmoSelector from "../components/AmmoSelector";
 import { useSearchParams } from "next/navigation";
 import { Canvas } from "@react-three/fiber";
 import { useGameContext } from "@/GameContext";
-import BackgroundMusic from "../components/BackgroundMusic";
+import { IoVolumeMute } from "react-icons/io5";
+import { IoMdVolumeMute } from "react-icons/io";
+import {motion} from 'framer-motion';
+
+
 
 interface FallingCubeData {
     id: number;
     initialX: number;
     fallingSpeed: number;
     isBonus: boolean;
+}
+
+
+
+const songs = [
+    {title: "Background1", url: "/music/bg.mp3"},
+]
+
+const effects = [
+    {title: "Fart", url: "/music/fart.mp3"},
+    {title: "Funny", url: "/music/funny.mp3"},
+    {title: "Meow", url: "/music/meow.mp3"}
+]
+
+const BackgroundMusic: React.FC<any> = () => {
+    const [isMuted, setIsMuted] = useState(true);
+    const [isLooping, setIsLooping] = useState(true);
+    const audioRef = useRef<HTMLAudioElement>(null);
+
+    useEffect(() => {
+                if (audioRef.current){
+                    audioRef.current.load();
+                }
+
+                
+            }, []);
+
+    useEffect(() => {
+                if (audioRef.current){
+                    audioRef.current.muted = isMuted;
+                }
+              
+                }, [isMuted])
+
+    const toggleMute = () => {
+                if (audioRef.current){
+                    setIsMuted(!isMuted)
+                }
+                
+            
+            };
+
+    return(
+        
+            <div className='fixed bottom-4 right-4 z-50'>
+                <audio 
+                    ref={audioRef}
+                    src={songs[0].url}
+                    autoPlay
+                    loop={isLooping}
+                    muted={true}  
+                    >
+                    
+                    Your browser does not support the audio element
+                        
+                </audio>
+                
+                <button onClick={toggleMute} className='text-white p-2'>
+                {isMuted ? 
+                    <IoVolumeMute size={20} /> : <IoMdVolumeMute size={20} />}
+                </button>
+            </div>
+    )
 }
 
 export default function GamePage(){
@@ -27,7 +94,14 @@ export default function GamePage(){
     const [projectiles, setProjectiles] = useState<any[]>([]);
     const [fallingCubes, setFallingCubes] = useState<FallingCubeData[]>([]);
     const [bottomY, setBottomY] = useState<number>(0);
+    const effectRef = useRef<HTMLAudioElement>(null);
 
+    useEffect(() => {
+        if (effectRef.current){
+            effectRef.current.load();
+        }
+        
+    }, []);
 
     useEffect(() => {
             const spawnInterval = setInterval(() => {
@@ -160,7 +234,11 @@ export default function GamePage(){
 
     const handleAmmoSelect = (option: any) => {
         console.log("Option", option)
-        setSelectedAmmo(option);
+        if (selectedAmmo === option){
+            setSelectedAmmo(null)
+        } else {
+            setSelectedAmmo(option);
+        }
     }
 
     useEffect(() => {
