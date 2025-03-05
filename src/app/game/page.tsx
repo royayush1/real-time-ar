@@ -297,7 +297,7 @@ export default function GamePage(){
                     Score: {score} | Lives: {lives} | Streak: {streak}
                 </div>
                 <div className="absolute bottom-4 left-4 z-[999]">
-                    <AmmoSelector ammoOptions={ammoOptions} onSelect={handleAmmoSelect}/>
+                    <AmmoSelector ammoOptions={ammoOptions} onSelect={handleAmmoSelect} selectedAmmo={selectedAmmo}/>
                 </div>
                 <Canvas ref={canvasRef} style={{ position:"absolute", top: 0, left: 0, width: "100%", height: "100%", borderWidth: 2}}>
                     <ambientLight intensity={0.5} />

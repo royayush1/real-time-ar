@@ -128,7 +128,12 @@ export default function ARGamePage() {
     }
 
     const handleAmmoSelect = (option: any) => {
-        setSelectedAmmo(option);
+        console.log("Option", option)
+        if (selectedAmmo === option){
+            setSelectedAmmo(null)
+        } else {
+            setSelectedAmmo(option);
+        }
     }
 
     const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -193,7 +198,7 @@ export default function ARGamePage() {
                     <Link href="/game" className="text-white font-bold text-2xl hover:text-purple-600">Ready!</Link>
                 </div>
                 <div className="absolute bottom-4 left-4 z-20">
-                    <AmmoSelector ammoOptions={ammoOptions} onSelect={handleAmmoSelect}/>
+                    <AmmoSelector ammoOptions={ammoOptions} onSelect={handleAmmoSelect} selectedAmmo={selectedAmmo}/>
                 </div>
                 <video
                     ref={videoRef}

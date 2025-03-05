@@ -12,10 +12,10 @@ interface AmmoOption {
 interface AmmoSelectorProps {
     ammoOptions: AmmoOption[]
     onSelect: (option: AmmoOption) => void;
+    selectedAmmo: any
 }
 
-export default function AmmoSelector({ammoOptions, onSelect}: AmmoSelectorProps){
-    const [selected, setSelected] = useState<boolean>(false);
+export default function AmmoSelector({ammoOptions, onSelect, selectedAmmo}: AmmoSelectorProps){
 
     return (
         <div className="bg-black bg-opacity-70 p-4 rounded">
@@ -26,10 +26,8 @@ export default function AmmoSelector({ammoOptions, onSelect}: AmmoSelectorProps)
                         key={option?.id}
                         onClick={
                             () => 
-                            {onSelect(option)
-                             setSelected(!selected)
-                            console.log("Selected",selected)}}
-                        className={`${selected ? 'bg-green-500' : '' } flex flex-col items-center hover:scale-105 transform transition-all duration-200`}>
+                            {onSelect(option)}}
+                        className={`${selectedAmmo != null && selectedAmmo==option ? 'bg-green-500' : '' } flex flex-col items-center hover:scale-105 transform transition-all duration-200`}>
                             <img
                                 src={option?.imageSrc}
                                 alt={option?.label}
