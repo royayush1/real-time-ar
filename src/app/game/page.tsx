@@ -20,7 +20,10 @@ interface FallingCubeData {
     isBonus: boolean;
 }
 
-
+interface BackgroundMusicProps {
+    isMuted: boolean,
+    setIsMuted: (isMuted: boolean) => void
+}
 
 const songs = [
     {title: "Background1", url: "/music/bg.mp3"},
@@ -32,8 +35,8 @@ const effects = [
     {title: "Meow", url: "/music/meow.mp3"}
 ]
 
-const BackgroundMusic: React.FC<any> = () => {
-    const [isMuted, setIsMuted] = useState(true);
+const BackgroundMusic: React.FC<any> = ({isMuted, setIsMuted} : BackgroundMusicProps) => {
+    
     const [isLooping, setIsLooping] = useState(true);
     const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -43,12 +46,15 @@ const BackgroundMusic: React.FC<any> = () => {
                 }
 
                 
+
+                
             }, []);
 
     useEffect(() => {
                 if (audioRef.current){
                     audioRef.current.muted = isMuted;
                 }
+                
               
                 }, [isMuted])
 
@@ -74,6 +80,16 @@ const BackgroundMusic: React.FC<any> = () => {
                     Your browser does not support the audio element
                         
                 </audio>
+                {/* <audio 
+                    ref={effectRef}
+                    src={effects[0].url}
+                    loop={false}
+                    muted={true}  
+                    >
+                    
+                    Your browser does not support the audio element
+                        
+                </audio> */}
                 
                 <button onClick={toggleMute} className='text-white p-2'>
                 {isMuted ? 
@@ -93,15 +109,26 @@ export default function GamePage(){
     const [selectedAmmo, setSelectedAmmo] = useState<any | null>(null);
     const [projectiles, setProjectiles] = useState<any[]>([]);
     const [fallingCubes, setFallingCubes] = useState<FallingCubeData[]>([]);
+    const [isMuted, setIsMuted] = useState(true);
     const [bottomY, setBottomY] = useState<number>(0);
     const effectRef = useRef<HTMLAudioElement>(null);
 
-    useEffect(() => {
-        if (effectRef.current){
-            effectRef.current.load();
-        }
-        
-    }, []);
+   useEffect(() => {
+    if (effectRef.current){
+        effectRef.current.load()
+    }
+   }, [])
+
+   useEffect(() => {
+    if (effectRef.current){
+        effectRef.current.muted = isMuted;
+    }
+    
+  
+    }, [isMuted])
+
+    
+
 
     useEffect(() => {
             const spawnInterval = setInterval(() => {
@@ -139,6 +166,8 @@ export default function GamePage(){
 
     }, [bottomY])
 
+    
+
     const renderFallingCubes = () => {
         
         return fallingCubes.map((cube) => {
@@ -164,7 +193,16 @@ export default function GamePage(){
                     targetID: cube.id,
                     setTargetHealth: setHealth,
                   };
-            
+                  
+                  const soundtrack = Math.floor(Math.random() * 3)
+                  if (effectRef.current){
+                    console.log("Soundtrack", soundtrack)
+                    console.log("Effect soundtrack: ", effects[soundtrack].url )
+                    effectRef.current.src = effects[soundtrack].url
+                    effectRef.current.play()
+                    console.log("Should have played")
+                    
+                  }
                   setProjectiles((prev: any[]) => [...prev, projectile]);
                   
                 //   setSelectedAmmo(null);
@@ -268,7 +306,17 @@ export default function GamePage(){
                     {renderProjectiles()}
 
                 </Canvas>
-                <BackgroundMusic/>
+                <audio 
+                    ref={effectRef}
+                    src={effects[0].url}
+                    loop={false}
+                    muted={true}  
+                    >
+                    
+                    Your browser does not support the audio element
+                        
+                </audio>
+                <BackgroundMusic isMuted={isMuted} setIsMuted={setIsMuted}/>
             </div>
         </>
     )
