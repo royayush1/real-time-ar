@@ -11,6 +11,7 @@ import AmmoProjectile from "../components/AmmoProjectile";
 import { label, pre } from "framer-motion/client";
 import Link from "next/link";
 import { useGameContext } from "@/GameContext";
+import { getInstanceMask, loadMaskRcnnModel } from "@/lib/InstanceSegmentation";
 
 interface Detection {
     class: string;
@@ -37,17 +38,48 @@ export default function ARGamePage() {
     const [pressPos, setPressPos] = useState<{x: number, y: number} | null>(null);
    
 
-    function captureSnapshot(video: HTMLVideoElement, bbox: [number, number, number, number]){
+    async function captureSnapshot(video: HTMLVideoElement, bbox: [number, number, number, number]){
         const [x, y, width, height] = bbox;
         const offScreenCanvas = document.createElement("canvas");
         offScreenCanvas.width = width;
         offScreenCanvas.height = height;
         const ctx = offScreenCanvas.getContext("2d");
-        if(ctx){
-            ctx.drawImage(video, x, y, width, height, 0, 0, width, height);
-            return offScreenCanvas.toDataURL("image/png")
+        if(!ctx) return ""
+        
+        ctx.drawImage(video, x, y, width, height, 0, 0, width, height);
+        const imageData = ctx.getImageData(0, 0, width, height);
+
+        await loadMaskRcnnModel();
+
+        const maskTensor = await getInstanceMask(imageData);
+        const maskData = await maskTensor.data();
+
+        const maskImageData = ctx.createImageData(width, height);
+        for(let i=0; i < maskData.length; i++){
+            const value = maskData[i] > 0.5 ? 255:0;
+            maskImageData.data[i * 4 + 0] = value;
+            maskImageData.data[i * 4 + 1] = value;
+            maskImageData.data[i * 4 + 2] = value;
+            maskImageData.data[i * 4 + 3] = 255;
         }
-        return "";
+
+        const outputCanvas = document.createElement("canvas");
+        outputCanvas.width = width;
+        outputCanvas.height = height;
+        const outputCtx = outputCanvas.getContext("2d");
+        if (!outputCtx) return "";
+
+        outputCtx.putImageData(imageData, 0, 0)
+        outputCtx.globalCompositeOperation = "destination-in";
+
+        outputCtx.putImageData(maskImageData, 0,0);
+        outputCtx.globalCompositeOperation = "source-over";
+
+        
+
+        return outputCanvas.toDataURL("image/png")
+        
+        
     }
 
     useEffect(() => {
