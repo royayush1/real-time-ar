@@ -14,12 +14,17 @@ export async function getInstanceMask(imageData: ImageData): Promise<tf.Tensor>{
         throw new Error("Mask R CNN Model not loaded")
     }
 
+      // Resize the cropped image to 1024x1024 as expected by the model.
     const inputTensor = tf.browser.fromPixels(imageData)
-    .expandDims(0)
-    .toFloat()
-    .div(tf.scalar(255));
+    .resizeBilinear([1024, 1024])
+    .expandDims(0); 
+    
 
-    const output = await maskRcnnModel.executeAsync(inputTensor) as tf.Tensor[];
+    const castedTensor = tf.cast(inputTensor, 'int32');
+
+    console.log("Casted Tensor: ", castedTensor)
+
+    const output = await maskRcnnModel.executeAsync(castedTensor) as tf.Tensor[];
 
     const maskTower = output[0];
 
