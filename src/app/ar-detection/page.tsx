@@ -47,14 +47,35 @@ export default function ARGamePage() {
         if(!ctx) return ""
         
         ctx.drawImage(video, x, y, width, height, 0, 0, width, height);
-        const imageData = ctx.getImageData(0, 0, width, height);
+
+        const MAX_SIZE = 1024;
+        let targetWidth = width;
+        let targetHeight = height;
+
+        console.log("width:", width)
+        console.log("height:", height)
+
+        if (width > MAX_SIZE || height > MAX_SIZE){
+            const scale = Math.min(MAX_SIZE / width, MAX_SIZE / height);
+            targetWidth = Math.floor(width * scale)
+            targetHeight = Math.floor(height * scale)
+        }
+
+        const resizedCanvas = document.createElement("canvas");
+        resizedCanvas.width = targetWidth;
+        resizedCanvas.height = targetHeight;
+        const resizedCtx = resizedCanvas.getContext("2d");
+        if (!resizedCtx) return "";
+
+        resizedCtx.drawImage(offScreenCanvas, 0, 0, width, height, 0, 0, targetWidth, targetHeight)
+        const imageData = resizedCtx.getImageData(0, 0, targetWidth, targetHeight);
 
         await loadMaskRcnnModel();
 
         const maskTensor = await getInstanceMask(imageData);
         const maskData = await maskTensor.data();
 
-        const maskImageData = ctx.createImageData(width, height);
+        const maskImageData = resizedCtx.createImageData(targetWidth, targetHeight);
         for(let i=0; i < maskData.length; i++){
             const value = maskData[i] > 0.5 ? 255:0;
             maskImageData.data[i * 4 + 0] = value;
@@ -64,8 +85,8 @@ export default function ARGamePage() {
         }
 
         const outputCanvas = document.createElement("canvas");
-        outputCanvas.width = width;
-        outputCanvas.height = height;
+        outputCanvas.width = targetWidth;
+        outputCanvas.height = targetHeight;
         const outputCtx = outputCanvas.getContext("2d");
         if (!outputCtx) return "";
 
