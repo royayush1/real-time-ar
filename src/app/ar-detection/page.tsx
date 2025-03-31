@@ -12,6 +12,7 @@ import { label, pre } from "framer-motion/client";
 import Link from "next/link";
 import { useGameContext } from "@/GameContext";
 import { getInstanceMask, loadMaskRcnnModel } from "@/lib/InstanceSegmentation";
+import * as tf from "@tensorflow/tfjs";
 
 interface Detection {
     class: string;
@@ -36,6 +37,9 @@ export default function ARGamePage() {
     const [projectiles, setProjectiles] = useState<any[]>([]);
     const [pressStart, setPressStart] = useState<number | null>(null);
     const [pressPos, setPressPos] = useState<{x: number, y: number} | null>(null);
+
+
+    
    
 
     async function captureSnapshot(video: HTMLVideoElement, bbox: [number, number, number, number]){
@@ -47,25 +51,30 @@ export default function ARGamePage() {
         if(!ctx) return ""
         
         ctx.drawImage(video, x, y, width, height, 0, 0, width, height);
+        console.log("ctx: ", ctx);
+        console.log("video", video);
 
-        const MAX_SIZE = 1024;
-        let targetWidth = width;
-        let targetHeight = height;
+        
+
+        const MAX_SIZE = 512;
+        let targetWidth = 512;
+        let targetHeight = 512;
 
         console.log("width:", width)
         console.log("height:", height)
 
-        if (width > MAX_SIZE || height > MAX_SIZE){
-            const scale = Math.min(MAX_SIZE / width, MAX_SIZE / height);
-            targetWidth = Math.floor(width * scale)
-            targetHeight = Math.floor(height * scale)
-        }
+        // if (width > MAX_SIZE || height > MAX_SIZE){
+        //     const scale = Math.min(MAX_SIZE / width, MAX_SIZE / height);
+        //     targetWidth = Math.floor(width * scale)
+        //     targetHeight = Math.floor(height * scale)
+        // }
 
         const resizedCanvas = document.createElement("canvas");
         resizedCanvas.width = targetWidth;
         resizedCanvas.height = targetHeight;
         const resizedCtx = resizedCanvas.getContext("2d");
         if (!resizedCtx) return "";
+
 
         resizedCtx.drawImage(offScreenCanvas, 0, 0, width, height, 0, 0, targetWidth, targetHeight)
         const imageData = resizedCtx.getImageData(0, 0, targetWidth, targetHeight);
@@ -107,7 +116,13 @@ export default function ARGamePage() {
         async function setupCamera(){
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
                 try {
-                    const stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: {ideal: "environment"}}});
+                    const stream = await navigator.mediaDevices.getUserMedia(
+                    {video: {
+                        width: {ideal: 640},
+                        height: {ideal: 480},
+                        facingMode: {ideal: "environment"}
+                    }});
+                    console.log("stream: ", stream)
                     if (videoRef.current){
                         videoRef.current.srcObject = stream;
                         return new Promise<void>((resolve) => {
