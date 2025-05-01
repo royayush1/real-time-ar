@@ -1,8 +1,9 @@
 // server.js
+
 const express = require('express');
 const cors = require('cors');
 const tf = require('@tensorflow/tfjs-node');
-const Jimp = require('jimp');
+const { Jimp, JimpMime } = require('jimp');
 const fs = require('fs');
 const path = require('path');
 
@@ -33,7 +34,7 @@ async function decodeBase64Image(base64Str) {
 }
 
 async function encodeImageToBase64(image) {
-  return await image.getBase64Async(Jimp.MIME_PNG);
+  return await image.getBase64(JimpMime.png);
 }
 
 app.post('/predict', async (req, res) => {
@@ -42,21 +43,28 @@ app.post('/predict', async (req, res) => {
     if (!imageBase64) {
       return res.status(400).json({ error: 'No image provided' });
     }
+    //console.log("Image base 64: ", imageBase64)
     
     const jimpImage = await decodeBase64Image(imageBase64);
-    jimpImage.resize(1024, 1024);
+
+    //console.log("Jimp image: ", jimpImage)
+    jimpImage.resize({w: 1024, h: 1024});
     
-    const imageBuffer = await jimpImage.getBufferAsync(Jimp.MIME_PNG);
+    const imageBuffer = await jimpImage.getBuffer(JimpMime.png);
     let inputTensor = tf.node.decodeImage(imageBuffer, 3);
-    inputTensor = inputTensor.expandDims(0).toFloat().div(tf.scalar(255)); 
+    inputTensor = inputTensor.expandDims(0); 
     
     const outputs = await model.executeAsync(inputTensor);
+    console.log("Outputs: ", outputs);
     let maskTensor = outputs[0];
+    console.log("mask tensor: ", maskTensor)
     maskTensor = maskTensor.squeeze();
 
     if (maskTensor.shape.length === 3) {
       maskTensor = maskTensor.slice([0, 0, 0], [-1, -1, 1]).squeeze();
     }
+
+    console.log("squeezed mask tensor: ", maskTensor)
     
     const binaryMask = maskTensor.greater(tf.scalar(0.5));
     const maskData = await binaryMask.array();
